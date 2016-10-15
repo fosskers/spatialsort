@@ -1,10 +1,7 @@
-module SpatialSort where
-{-}
+module SpatialSort
   ( Point(..)
   , spatialSort
-  , distance
   ) where
--}
 
 import           Data.List (sortBy)
 import           Data.Monoid
@@ -24,9 +21,6 @@ kernels v = (avg (V.head v) mid, avg (V.last v) mid)
   where mid = v V.! (V.length v `div` 2)
         avg (Point a b) (Point c d) = Point ((a + c) / 2) ((b + d) / 2)
 
-kernels2 :: Vector Point -> (Point, Point)
-kernels2 v = (V.head v, V.last v)
-
 -- | Assumption: The Vector isn't empty.
 centroid :: Vector Point -> Point
 centroid v = Point x' y'
@@ -40,45 +34,13 @@ distance p1 p2 = sqrt $ dx ** 2 + dy ** 2
         dy = y p1 - y p2
 
 -- | Give a decent one-dimensional order to Points which are spatially close.
-
-spatialSort0 :: Vector Point -> Vector Point
-spatialSort0 v | V.length v == 2 = V.fromList [minimum v, maximum v]
-               | V.length v < 2 = v
-               | otherwise = spatialSort0 l <> spatialSort0 r
-  where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
-        (kl, kr) = kernels2 v
-
-spatialSort1 :: Vector Point -> Vector Point
-spatialSort1 v | V.length v == 0 = v
-               | V.length v < 6 = V.modify I.sort v
-               | otherwise = spatialSort1 l <> spatialSort1 r
-  where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
-        (kl, kr) = kernels v
-
-spatialSort2 :: Vector Point -> Vector Point
-spatialSort2 v | V.length v == 0 = v
-               | V.length v < 6 = V.modify (I.sortBy (\a b -> compare (distance a c) (distance b c))) v
-               | otherwise = spatialSort2 l <> spatialSort2 r
+spatialSort :: Vector Point -> Vector Point
+spatialSort v | V.length v == 0 = v
+              | V.length v < 6 = V.modify I.sort v
+              | otherwise = fuse (spatialSort l) (spatialSort r)
   where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
         (kl, kr) = kernels v
         c = centroid v
-
-spatialSort3 :: Vector Point -> Vector Point
-spatialSort3 v | V.length v == 0 = v
-               | V.length v < 6 = V.modify (I.sortBy (\a b -> compare (distance a c) (distance b c))) v
-               | otherwise = fuse (spatialSort3 l) (spatialSort3 r)
-  where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
-        (kl, kr) = kernels v
-        c = centroid v
-
-spatialSort4 :: Vector Point -> Vector Point
-spatialSort4 v | V.length v == 0 = v
-               | V.length v < 6 = V.modify I.sort v
-               | otherwise = fuse (spatialSort4 l) (spatialSort4 r)
-  where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
-        (kl, kr) = kernels v
-        c = centroid v
-
 
 -- | Fuse two lines by whichever end points are closest.
 fuse :: Vector Point -> Vector Point -> Vector Point
