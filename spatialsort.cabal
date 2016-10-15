@@ -26,6 +26,8 @@ library
                      , pipes-random >= 1.0 && < 1.1
                      , Chart-cairo >= 1.8 && < 1.9
                      , Chart >= 1.8 && < 1.9
+                     , microlens >= 0.4 && < 0.5
+                     , vector-algorithms >= 0.7 && < 0.8
 
   -- hs-source-dirs:
   default-language:    Haskell2010

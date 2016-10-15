@@ -11,6 +11,10 @@ import           SpatialSort
 
 ---
 
+-- | Total length of line of points.
+pathLen :: Vector Point -> Float
+pathLen v = sum . V.map (uncurry distance) $ V.zip v (V.tail v)
+
 -- | A sin wave.
 wave :: Vector Point
 wave = V.generate 100 (\n -> Point (fromIntegral n / 3) $ sin (fromIntegral n / 3))
@@ -62,11 +66,28 @@ scatters :: IO ()
 scatters = do
   s <- scatter
   png "scatter-large-raw.png" s
-  png "scatter-large-sorted.png" $ spatialSort s
+  png "scatter-large-sorted.png" $ spatialSort4 s
+
+scatterBench :: String -> (Vector Point -> Vector Point) -> IO ()
+scatterBench msg f = do
+  ls <- sequence . take 1 $ repeat g
+  putStrLn $ msg ++ " " ++ show (sum ls / fromIntegral (length ls))
+  where g = do
+          s <- scatter
+          let s' = f s
+          pure $ pathLen s / pathLen s'
+
+bench :: IO ()
+bench = do
+  scatterBench "original" spatialSort0
+  scatterBench "sort" spatialSort1
+  scatterBench "sortBy" spatialSort2
+  scatterBench "sortBy - smart fuse" spatialSort3
+  scatterBench "sort - smart fuse" spatialSort4
 
 polys :: IO ()
 polys = do
   png "polys-raw.png" poly
   ps <- random poly
   png "polys-random.png" ps
-  png "polys-sorted.png" $ spatialSort ps
+  png "polys-sorted.png" $ spatialSort2 ps
