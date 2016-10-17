@@ -1,6 +1,7 @@
 module SpatialSort
   ( Point(..)
   , spatialSort
+  , distance
   ) where
 
 import           Data.List (sortBy)
@@ -40,7 +41,6 @@ spatialSort v | V.length v == 0 = v
               | otherwise = fuse (spatialSort l) (spatialSort r)
   where (l, r) = V.partition (\p -> distance p kl < distance p kr) v
         (kl, kr) = kernels v
-        c = centroid v
 
 -- | Fuse two lines by whichever end points are closest.
 fuse :: Vector Point -> Vector Point -> Vector Point
